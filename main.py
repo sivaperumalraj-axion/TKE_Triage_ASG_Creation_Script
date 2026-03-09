@@ -220,7 +220,8 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
                         'title': row[title_col],
                         'parent_href': is_existing_asg(driver, wait)[0],
                         'parent_label': is_existing_asg(driver, wait)[1],
-                        'status': 'Created with Primary Issue ID, Part Number and QCR ID'
+                        'status': 'Created with Primary Issue ID, Part Number and QCR ID',
+                        'success': True
                     }
                     select_datasets(driver, wait)
                     primary_issue_id_filter_select(driver, wait)
@@ -232,9 +233,27 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
                     save_as_asg(driver, wait, row[title_col])
                     submit_asg(driver, wait)
                     time.sleep(1)
+                    if is_existing_asg(driver, wait):
+                        row_details = {
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'parent_href': is_existing_asg(driver, wait)[0],
+                        'parent_label': is_existing_asg(driver, wait)[1],
+                        'status': 'Parent ASG already exists, need manual creation',
+                        'success': FalseSocial 
+                        }
+                        df_list.append(row_details)
+                        continue
+
                     # Add the Description Logic Here
+                    row_details['status'] = 'Created with Primary Issue ID, Part Number and QCR ID, but the description is not added'
+                    df_list.append(row_details)
                     description = f"Parent QCR ID {row_details['parent_label']} -> {row_details['parent_href']}"
                     add_description(driver, wait, description)
+                    df_list.pop()
+                    row_details['status'] = 'Created with Primary Issue ID, Part Number and QCR ID, and the description is added'
                     df_list.append(row_details)
 
                 else:
@@ -243,7 +262,8 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
                         'primary_issue_id': row[primary_issue_id_col],
                         'part_number': row[part_number_col],
                         'title': row[title_col],
-                        'status': 'created'
+                        'status': 'created',
+                        'success': True
                     })
             elif pd.notna(row[qcr_id_col]) and pd.notna(row[primary_issue_id_col]):
                 select_datasets(driver, wait)
@@ -269,7 +289,8 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
                         'primary_issue_id': row[primary_issue_id_col],
                         'part_number': row[part_number_col],
                         'title': row[title_col],
-                        'status': 'created'
+                        'status': 'created',
+                        'success': True
                     })
             else:
                 df_list.append({
@@ -277,7 +298,8 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
                     'primary_issue_id': row[primary_issue_id_col],
                     'part_number': row[part_number_col],
                     'title': row[title_col],
-                    'status': 'no part number or qcr id or primary issue id'
+                    'status': 'no part number or qcr id or primary issue id',
+                    'success': False
                 })
         except Exception as e:
             df_list.append({
@@ -285,7 +307,8 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
                 'primary_issue_id': row[primary_issue_id_col],
                 'part_number': row[part_number_col],
                 'title': row[title_col],
-                'status': f'error: {e}'
+                'status': f'error: {e}',
+                'success': False
             })
             continue
     driver.quit()
@@ -293,6 +316,6 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("triage_asg_creation_test - one_record.csv")
+    df = pd.read_csv("Triage ASG Creation Mar 09 2026 - Test Records.csv")
     df = create_asg(df, 'qcr_id', 'primary_issue_id', 'part_number', 'title')
-    df.to_csv(f'asg_creation_result_mar_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+    df.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
