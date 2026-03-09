@@ -2,6 +2,20 @@
 
 Automates the creation of Analytic Sub Groups (ASGs) on the [TKE AxionRay](https://tke.axionray.com/) platform using Selenium. Reads QCR records from a CSV file, applies the appropriate filters on the web UI, and creates ASGs for each row.
 
+## Project Structure
+
+```
+Triage_AGS_Creation_Automation/
+├── triage_asg_creator/          # Main package
+│   ├── __init__.py              # Exports create_legacy_qcr_asg, create_eox_qcr_asg
+│   ├── legacy_qcr.py            # ASG creation for the Legacy QCR dataset
+│   └── eox_qcr.py               # ASG creation for the EOX QCR dataset
+├── output/                      # Generated result CSVs
+├── USAGE.md                     # Detailed usage guide with examples
+├── README.md
+└── .gitignore
+```
+
 ## Prerequisites
 
 - **Python 3.8+**
@@ -22,52 +36,41 @@ Install with:
 pip install selenium pandas
 ```
 
-## Input CSV Format
+## Quick Start
 
-The input CSV must contain the following columns:
+```python
+from triage_asg_creator import create_legacy_qcr_asg
 
-| Column | Description | Required |
-|---|---|---|
-| `qcr_id` | The QCR ID (e.g. `338165`) | Yes |
-| `primary_issue_id` | Primary Issue ID code (e.g. `11.2.1`) | Yes |
-| `part_number` | Comma-separated part numbers (e.g. `8001339599, 8000723386`). Leave blank if not applicable. | No |
-| `title` | ASG title (e.g. `QCR ID: 338160 \| Incorrect EMT Fittings`) | Yes |
-
-Example:
-
-```csv
-part_number,qcr_id,title,primary_issue_id
-"8001339599, 8000723386",338160,QCR ID: 338160 | Incorrect EMT Fittings Provided in Kit 8001339599,11.2.3
+create_legacy_qcr_asg(
+    csv_path="your_input.csv",
+    output_path="output/result.csv",
+    qcr_id_col="qcr_id",
+    primary_issue_id_col="primary_issue_id",
+    part_number_col="part_number",
+    title_col="title",
+)
 ```
 
-## Usage
+See [USAGE.md](USAGE.md) for full details, CSV formats, and examples for both modules.
 
-1. Update the input CSV filename in `main.py` (bottom of the file) to point to your data:
+## Input CSV Format
 
-   ```python
-   df = pd.read_csv("your_input_file.csv")
-   df = create_asg(df, 'qcr_id', 'primary_issue_id', 'part_number', 'title')
-   ```
+The input CSV must contain columns that map to these four required fields:
 
-2. Run the script:
-
-   ```bash
-   python main.py
-   ```
-
-3. A Chrome window will open. **Log in to TKE AxionRay manually**, then return to the terminal and press **Enter** to start the automation.
-
-4. The script will iterate through each CSV row and create ASGs automatically.
-
-5. Results are saved to the `output/` folder as a timestamped CSV (e.g. `asg_creation_result_mar_09_03_26_15_34_44.csv`).
+| Field | Description | Required |
+|---|---|---|
+| QCR ID | The QCR ID (e.g. `338165`) | Yes |
+| Primary Issue ID | Primary Issue ID code (e.g. `11.2.1`) | Yes |
+| Part Number | Comma-separated part numbers (e.g. `8001339599, 8000723386`). Leave blank if not applicable. | No |
+| Title | ASG title (e.g. `QCR ID: 338160 \| Incorrect EMT Fittings`) | Yes |
 
 ## How It Works
 
-The script handles two cases per row based on available data:
+Each module handles two cases per row based on available data:
 
 ### Case 1: Part Number is present
 
-1. Navigates to the Investigate page and selects the **QCR** dataset.
+1. Navigates to the Investigate page and selects the appropriate dataset.
 2. Drags **Primary Issue ID** into the filter area and applies the value.
 3. Drags **Part Number** into the filter area and applies each comma-separated value.
 4. Saves the ASG with the given title.
@@ -75,7 +78,7 @@ The script handles two cases per row based on available data:
 
 ### Case 2: Only QCR ID is present (no Part Number)
 
-1. Navigates to the Investigate page and selects the **QCR** dataset.
+1. Navigates to the Investigate page and selects the appropriate dataset.
 2. Drags **Primary Issue ID** into the filter area and applies the value.
 3. Drags **QCR ID** into the filter area and applies the value.
 4. Saves the ASG with the given title.
@@ -94,29 +97,12 @@ Rows that lack both `part_number` and `qcr_id` (or `primary_issue_id`) are skipp
 | `title` | ASG title from input |
 | `parent_href` | URL of the parent/existing ASG (if duplicate detected) |
 | `parent_label` | Label of the parent/existing ASG (if duplicate detected) |
-| `status` | Creation result: `created`, `existing, need manual creation`, or `error: <message>` |
-
-## Key Functions
-
-| Function | Purpose |
-|---|---|
-| `create_driver()` | Initializes Chrome with a persistent user profile |
-| `select_datasets()` | Navigates to the workspace and selects the QCR dataset |
-| `primary_issue_id_filter_select()` | Drags Primary Issue ID into the filter panel |
-| `primary_issue_id_filter_apply_at_first_filter()` | Searches and selects a Primary Issue ID value |
-| `part_number_filter_select()` | Drags Part Number into the filter panel |
-| `part_number_filter_apply_at_second_filter()` | Searches and selects each part number value |
-| `qcr_id_filter_select()` | Drags QCR ID into the filter panel |
-| `qcr_id_filter_apply_at_second_filter()` | Applies QCR ID as the 2nd filter |
-| `qcr_id_filter_apply_at_thrid_filter()` | Applies QCR ID as the 3rd filter |
-| `save_as_asg()` | Opens the save dialog and enters the ASG title |
-| `submit_asg()` | Clicks the create/save button |
-| `is_existing_asg()` | Checks if a duplicate ASG chip/link appeared after submission |
-| `add_description()` | Switches to Overview tab, types a description, and waits for autosave |
-| `create_asg()` | Main orchestrator that loops through the DataFrame and coordinates all steps |
+| `status` | Creation result (see USAGE.md for all possible values) |
+| `success` | `True` if created successfully, `False` otherwise |
 
 ## Notes
 
 - The script uses a **persistent Chrome profile** (`selenium_chrome_profile`) so login sessions are preserved across runs.
 - All UI interactions include `time.sleep()` pauses to account for varying page load times.
 - If a row fails, the error is captured in the output CSV `status` column and the script continues to the next row.
+- All CSV columns are read as strings (`dtype=str`) to prevent numeric values from gaining decimal suffixes.

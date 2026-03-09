@@ -5,4 +5,7 @@
 !.gitignore
 !main.py
 !README.md
+!USAGE.md
 !EOX QCR update_05_03_26 - ASG.csv
+!triage_asg_creator
+!triage_asg_creator/**

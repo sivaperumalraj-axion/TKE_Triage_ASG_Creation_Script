@@ -18,27 +18,27 @@ def create_driver(wait_seconds: int = 30):
     return driver, wait
 
 def select_datasets(driver: webdriver.Chrome, wait: WebDriverWait):
-    driver.get("https://tke.axionray.com/workspace/683851f685f19b4445d29bb8/explore/investigate")
+    driver.get("https://tke.axionray.com/workspace/68d297b0131207fba5b42844/explore/investigate")
     # Dataset Selection
-    toggle = wait.until(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, 'input.MuiSwitch-input[aria-label="Deselect All Datasets"]')
-    ))
-    if toggle.is_selected():
-        toggle.click()
-        print("Toggle turned OFF.")
-    else:
-        print("Toggle already OFF.")
-    qcr_dataset_el = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[value="QCR"]')))  
-    qcr_dataset_el.click()
+    # toggle = wait.until(EC.presence_of_element_located(
+    #     (By.CSS_SELECTOR, 'input.MuiSwitch-input[aria-label="Deselect All Datasets"]')
+    # ))
+    # if toggle.is_selected():
+    #     toggle.click()
+    #     print("Toggle turned OFF.")
+    # else:
+    #     print("Toggle already OFF.")
+    # qcr_dataset_el = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[value="QCR"]')))  
+    # qcr_dataset_el.click()
 
-    next_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Next')]")))
-    next_btn.click()
-    time.sleep(1)
+    # next_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Next')]")))
+    # next_btn.click()
+    # time.sleep(1)
 
 def primary_issue_id_filter_select(driver: webdriver.Chrome, wait: WebDriverWait):
     # The First Filter
     primary_issue_id_source = wait.until(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, '[data-testid="customAttributes.Primary Issue ID Ax_Primary Issue ID_QCR"]')
+        (By.CSS_SELECTOR, '[data-testid="customAttributes.Primary Issue ID Ax_Primary Issue ID_Legacy_QCR"]')
     ))
 
     primary_issue_id_target = wait.until(EC.presence_of_element_located(
@@ -67,7 +67,7 @@ def primary_issue_id_filter_apply_at_first_filter(driver: webdriver.Chrome, wait
 def part_number_filter_select(driver: webdriver.Chrome, wait: WebDriverWait):
        # The Second Filter
     part_number_source = wait.until(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, '[data-testid="customAttributes.Part Number Ax_Part Number_QCR"]')
+        (By.CSS_SELECTOR, '[data-testid="customAttributes.Part Number Ax_Part Number_Legacy_QCR"]')
     ))
 
     part_number_target = wait.until(EC.presence_of_element_located(
@@ -81,7 +81,7 @@ def part_number_filter_select(driver: webdriver.Chrome, wait: WebDriverWait):
 def qcr_id_filter_select(driver: webdriver.Chrome, wait: WebDriverWait):
     # The QCR ID is the second Filter
     source = wait.until(EC.presence_of_element_located(
-        (By.CSS_SELECTOR, '[data-testid="eventId_EOX QCR Id_QCR"]')
+        (By.CSS_SELECTOR, '[data-testid="eventId_Legacy QCR Id_Legacy_QCR"]')
     ))
 
     target = wait.until(EC.presence_of_element_located(
@@ -145,6 +145,7 @@ def submit_asg(driver: webdriver.Chrome, wait: WebDriverWait):
     create_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[aria-label="save group button"]')))
     create_btn.click()
     time.sleep(3)
+    wait.until(EC.element_to_be_clickable((By.ID, "claim-analytics-tab-0-overview")))
 
 def is_existing_asg(driver: webdriver.Chrome, wait: WebDriverWait):
     try:
@@ -193,12 +194,17 @@ def add_description(driver: webdriver.Chrome, wait: WebDriverWait, description: 
     except:
         print("Saved indicator not found; proceeding assuming autosave on blur.")
 
-def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str) -> pd.DataFrame:
+def create_asg_legacy(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str) -> pd.DataFrame:
+    df = pd.read_csv(csv_path, dtype=str)
+
+    for col in [qcr_id_col, primary_issue_id_col, part_number_col, title_col]:
+        if col not in df.columns:
+            raise ValueError(f"Column {col} is not in the input CSV file.")
     driver, wait = create_driver()
     driver.get("https://tke.axionray.com/")
     input('Login and navigate to the ASG Creation page. And Press Enter to continue...')
     ActionChains(driver).move_by_offset(30,30).click().perform()
-    time.sleep(5)
+    time.sleep(1)
 
     df_list = []
 
@@ -312,10 +318,20 @@ def create_asg(df: pd.DataFrame, qcr_id_col: str, primary_issue_id_col: str, par
             })
             continue
     driver.quit()
-    return pd.DataFrame(df_list)
+    output = pd.DataFrame(df_list)
+    if output_path:
+        output_path = output_path.replace('.csv', '')
+        try:
+            output.to_csv(f'{output_path}{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+        except Exception as e:
+            print(f"Error saving output to {output_path}: {e}")
+            output.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+    else:
+        output.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+    return output
 
 
-if __name__ == "__main__":
-    df = pd.read_csv("Triage ASG Creation Mar 09 2026 - Test Records.csv")
-    df = create_asg(df, 'qcr_id', 'primary_issue_id', 'part_number', 'title')
-    df.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+# if __name__ == "__main__":
+#     df = pd.read_csv("Triage ASG Creation Mar 09 2026 (Legacy)- Test Records.csv")
+#     df = create_asg(df, 'qcr_id', 'primary_issue_id', 'part_number', 'title')
+#     df.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
