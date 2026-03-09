@@ -1,0 +1,8 @@
+# Ignore everything
+*
+
+# Allow these files
+!.gitignore
+!main.py
+!README.md
+!EOX QCR update_05_03_26 - ASG.csv
