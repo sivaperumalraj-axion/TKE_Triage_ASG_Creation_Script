@@ -7,7 +7,7 @@ Automates the creation of Analytic Sub Groups (ASGs) on the [TKE AxionRay](https
 ```
 Triage_AGS_Creation_Automation/
 ├── triage_asg_creator/          # Main package
-│   ├── __init__.py              # Exports create_legacy_qcr_asg, create_eox_qcr_asg
+│   ├── __init__.py              # Exports both creation functions
 │   ├── legacy_qcr.py            # ASG creation for the Legacy QCR dataset
 │   └── eox_qcr.py               # ASG creation for the EOX QCR dataset
 ├── output/                      # Generated result CSVs
@@ -39,9 +39,9 @@ pip install selenium pandas
 ## Quick Start
 
 ```python
-from triage_asg_creator import create_legacy_qcr_asg
+from triage_asg_creator import create_asg_legacy_with_predetermined_filters
 
-create_legacy_qcr_asg(
+create_asg_legacy_with_predetermined_filters(
     csv_path="your_input.csv",
     output_path="output/result.csv",
     qcr_id_col="qcr_id",
@@ -66,26 +66,30 @@ The input CSV must contain columns that map to these four required fields:
 
 ## How It Works
 
-Each module handles two cases per row based on available data:
+The script determines which filters to apply based on which columns have data for each row:
 
-### Case 1: Part Number is present
-
-1. Navigates to the Investigate page and selects the appropriate dataset.
-2. Drags **Primary Issue ID** into the filter area and applies the value.
-3. Drags **Part Number** into the filter area and applies each comma-separated value.
-4. Saves the ASG with the given title.
-5. If a **parent ASG already exists** (duplicate detected), it creates a second, more specific ASG by additionally filtering on **QCR ID**, then adds a description referencing the parent ASG.
-
-### Case 2: Only QCR ID is present (no Part Number)
+### Case 1: Primary Issue ID + Part Number + QCR ID (all three present)
 
 1. Navigates to the Investigate page and selects the appropriate dataset.
-2. Drags **Primary Issue ID** into the filter area and applies the value.
-3. Drags **QCR ID** into the filter area and applies the value.
-4. Saves the ASG with the given title.
+2. Applies **Primary Issue ID** and **Part Number** filters.
+3. Saves the ASG with a light submit (no wait for overview tab).
+4. If a **parent ASG already exists** (duplicate detected), creates a second, more specific ASG by additionally filtering on **QCR ID**, then adds a description referencing the parent.
+5. If no duplicate but submission didn't complete, logs the row for manual creation.
+
+### Case 2: Primary Issue ID + Part Number (no QCR ID)
+
+1. Applies **Primary Issue ID** and **Part Number** filters.
+2. Saves and submits the ASG.
+
+### Case 3: Primary Issue ID + QCR ID (no Part Number)
+
+1. Applies **Primary Issue ID** and **QCR ID** filters.
+2. Saves and submits the ASG.
 
 ### Rows with missing data
 
-Rows that lack both `part_number` and `qcr_id` (or `primary_issue_id`) are skipped and logged with a status of `no part number or qcr id or primary issue id`.
+- Rows without a **title** are skipped with status `no title`.
+- Rows that lack sufficient filter columns are logged with status `no part number or qcr id or primary issue id`.
 
 ## Output CSV Format
 
@@ -97,7 +101,7 @@ Rows that lack both `part_number` and `qcr_id` (or `primary_issue_id`) are skipp
 | `title` | ASG title from input |
 | `parent_href` | URL of the parent/existing ASG (if duplicate detected) |
 | `parent_label` | Label of the parent/existing ASG (if duplicate detected) |
-| `status` | Creation result (see USAGE.md for all possible values) |
+| `status` | Creation result (see [USAGE.md](USAGE.md) for all possible values) |
 | `success` | `True` if created successfully, `False` otherwise |
 
 ## Notes

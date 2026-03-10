@@ -25,9 +25,10 @@ def select_datasets(driver: webdriver.Chrome, wait: WebDriverWait):
     ))
     if toggle.is_selected():
         toggle.click()
-        print("Toggle turned OFF.")
+        # print("Toggle turned OFF.")
     else:
-        print("Toggle already OFF.")
+        # print("Toggle already OFF.")
+        pass
     qcr_dataset_el = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, '[value="QCR"]')))  
     qcr_dataset_el.click()
 
@@ -199,9 +200,10 @@ def add_description(driver: webdriver.Chrome, wait: WebDriverWait, description: 
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//*[normalize-space()='Saved!']"))
         )
-        print("Description saved successfully.")
+        # print("Description saved successfully.")
     except:
-        print("Saved indicator not found; proceeding assuming autosave on blur.")
+        # print("Saved indicator not found; proceeding assuming autosave on blur.")
+        pass
 
 # def create_asg_eox(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str) -> pd.DataFrame:
 #     df = pd.read_csv(csv_path, dtype=str)
@@ -356,6 +358,7 @@ def  create_asg_eox_with_predetermined_filters(*, csv_path: str, output_path: st
     df_list = []
 
     for _, row in df.iterrows():
+        print("Processing row: ", row)
         try:
 
             if not pd.notna(row[title_col].strip()):
@@ -476,15 +479,29 @@ def  create_asg_eox_with_predetermined_filters(*, csv_path: str, output_path: st
                     'success': False
                 })
         except Exception as e:
-            df_list.append({
-                'qcr_id': row[qcr_id_col],
-                'primary_issue_id': row[primary_issue_id_col],
-                'part_number': row[part_number_col],
-                'title': row[title_col],
-                'status': f'error: {e}',
-                'success': False
-            })
-            continue
+            user_handle = input("If you want to handle the error manually, press 'y' and press Enter. Otherwise, press 'n' and press Enter.")
+            if user_handle == 'y':
+                print("Error: ", e)
+                df_list.append({
+                    'qcr_id': row[qcr_id_col],
+                    'primary_issue_id': row[primary_issue_id_col],
+                    'part_number': row[part_number_col],
+                    'title': row[title_col],
+                    'status': f'error: {e} handled manually',
+                    'success': True
+                })
+                continue
+            else:
+                print("Error: ", e)
+                df_list.append({
+                    'qcr_id': row[qcr_id_col],
+                    'primary_issue_id': row[primary_issue_id_col],
+                    'part_number': row[part_number_col],
+                    'title': row[title_col],
+                    'status': f'error: {e}',
+                    'success': False
+                })
+                continue
     driver.quit()
     output = pd.DataFrame(df_list)
     if output_path:
