@@ -205,145 +205,155 @@ def add_description(driver: webdriver.Chrome, wait: WebDriverWait, description: 
         # print("Saved indicator not found; proceeding assuming autosave on blur.")
         pass
 
-# def create_asg_eox(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str) -> pd.DataFrame:
-#     df = pd.read_csv(csv_path, dtype=str)
+def create_asg_eox(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str) -> pd.DataFrame:
+    df = pd.read_csv(csv_path, dtype=str)
 
-#     for col in [qcr_id_col, primary_issue_id_col, part_number_col, title_col]:
-#         if col not in df.columns:
-#             raise ValueError(f"Column {col} is not in the input CSV file.")
+    for col in [qcr_id_col, primary_issue_id_col, part_number_col, title_col]:
+        if col not in df.columns:
+            raise ValueError(f"Column {col} is not in the input CSV file.")
 
-#     driver, wait = create_driver()
-#     driver.get("https://tke.axionray.com/")
-#     input('Login and navigate to the ASG Creation page. And Press Enter to continue...')
-#     ActionChains(driver).move_by_offset(30,30).click().perform()
-#     time.sleep(1)
+    driver, wait = create_driver()
+    driver.get("https://tke.axionray.com/")
+    input('Login and navigate to the ASG Creation page. And Press Enter to continue...')
+    ActionChains(driver).move_by_offset(30,30).click().perform()
+    time.sleep(1)
 
-#     df_list = []
+    df_list = []
 
-#     for _, row in df.iterrows():
-#         try:
-#             if pd.notna(row[part_number_col]) and pd.notna(row[primary_issue_id_col]):
-#                 select_datasets(driver, wait)
-#                 primary_issue_id_filter_select(driver, wait)
-#                 primary_issue_id_filter_apply_at_first_filter(driver, wait, str(row[primary_issue_id_col]))
-#                 part_number_filter_select(driver, wait)
-#                 part_number_filter_apply_at_second_filter(driver, wait, str(row[part_number_col]))
-#                 save_as_asg(driver, wait, row[title_col])
-#                 strong_submit_asg(driver, wait)
-#                 if is_existing_asg(driver, wait):
-#                     row_details = {
-#                         'qcr_id': row[qcr_id_col],
-#                         'primary_issue_id': row[primary_issue_id_col],
-#                         'part_number': row[part_number_col],
-#                         'title': row[title_col],
-#                         'parent_href': is_existing_asg(driver, wait)[0],
-#                         'parent_label': is_existing_asg(driver, wait)[1],
-#                         'status': 'Created with Primary Issue ID, Part Number and QCR ID',
-#                         'success': True
-#                     }
-#                     select_datasets(driver, wait)
-#                     primary_issue_id_filter_select(driver, wait)
-#                     primary_issue_id_filter_apply_at_first_filter(driver, wait, str(row[primary_issue_id_col]))
-#                     part_number_filter_select(driver, wait)
-#                     part_number_filter_apply_at_second_filter(driver, wait, str(row[part_number_col]))
-#                     qcr_id_filter_select(driver, wait)
-#                     qcr_id_filter_apply_at_thrid_filter(driver, wait, str(row[qcr_id_col]))
-#                     save_as_asg(driver, wait, row[title_col])
-#                     strong_submit_asg(driver, wait)
-#                     time.sleep(1)
-#                     if is_existing_asg(driver, wait):
-#                         row_details = {
-#                         'qcr_id': row[qcr_id_col],
-#                         'primary_issue_id': row[primary_issue_id_col],
-#                         'part_number': row[part_number_col],
-#                         'title': row[title_col],
-#                         'parent_href': is_existing_asg(driver, wait)[0],
-#                         'parent_label': is_existing_asg(driver, wait)[1],
-#                         'status': 'Parent ASG already exists, need manual creation',
-#                         'success': False,
-#                         }
-#                         df_list.append(row_details)
-#                         continue
+    for _, row in df.iterrows():
+        try:
+            if pd.notna(row[part_number_col]) and pd.notna(row[primary_issue_id_col]):
+                select_datasets(driver, wait)
+                primary_issue_id_filter_select(driver, wait)
+                primary_issue_id_filter_apply_at_first_filter(driver, wait, str(row[primary_issue_id_col]))
+                part_number_filter_select(driver, wait)
+                part_number_filter_apply_at_second_filter(driver, wait, str(row[part_number_col]))
+                save_as_asg(driver, wait, row[title_col])
+                light_submit_asg(driver, wait)
+                if is_existing_asg(driver, wait):
+                    row_details = {
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'parent_href': is_existing_asg(driver, wait)[0],
+                        'parent_label': is_existing_asg(driver, wait)[1],
+                        'status': 'Created with Primary Issue ID, Part Number and QCR ID',
+                        'success': True
+                    }
+                    select_datasets(driver, wait)
+                    primary_issue_id_filter_select(driver, wait)
+                    primary_issue_id_filter_apply_at_first_filter(driver, wait, str(row[primary_issue_id_col]))
+                    part_number_filter_select(driver, wait)
+                    part_number_filter_apply_at_second_filter(driver, wait, str(row[part_number_col]))
+                    qcr_id_filter_select(driver, wait)
+                    qcr_id_filter_apply_at_thrid_filter(driver, wait, str(row[qcr_id_col]))
+                    save_as_asg(driver, wait, row[title_col])
+                    strong_submit_asg(driver, wait)
+                    time.sleep(1)
+                    if is_existing_asg(driver, wait):
+                        row_details = {
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'parent_href': is_existing_asg(driver, wait)[0],
+                        'parent_label': is_existing_asg(driver, wait)[1],
+                        'status': 'Parent ASG already exists, need manual creation',
+                        'success': False,
+                        }
+                        df_list.append(row_details)
+                        continue
 
-#                     # Add the Description Logic Here
-#                     row_details['status'] = 'Created with Primary Issue ID, Part Number and QCR ID, but the description is not added'
-#                     df_list.append(row_details)
-#                     description = f"Parent QCR ID {row_details['parent_label']} -> {row_details['parent_href']}"
-#                     add_description(driver, wait, description)
-#                     df_list.pop()
-#                     row_details['status'] = 'Created with Primary Issue ID, Part Number and QCR ID, and the description is added'
-#                     df_list.append(row_details)
+                    # Add the Description Logic Here
+                    row_details['status'] = 'Created with Primary Issue ID, Part Number and QCR ID, but the description is not added'
+                    df_list.append(row_details)
+                    description = f"Parent QCR ID {row_details['parent_label']} -> {row_details['parent_href']}"
+                    add_description(driver, wait, description)
+                    df_list.pop()
+                    row_details['status'] = 'Created with Primary Issue ID, Part Number and QCR ID, and the description is added'
+                    df_list.append(row_details)
 
-#                 else:
-#                     df_list.append({
-#                         'qcr_id': row[qcr_id_col],
-#                         'primary_issue_id': row[primary_issue_id_col],
-#                         'part_number': row[part_number_col],
-#                         'title': row[title_col],
-#                         'status': 'created',
-#                         'success': True
-#                     })
-#             elif pd.notna(row[qcr_id_col]) and pd.notna(row[primary_issue_id_col]):
-#                 select_datasets(driver, wait)
-#                 primary_issue_id_filter_select(driver, wait)
-#                 primary_issue_id_filter_apply_at_first_filter(driver, wait, str(row[primary_issue_id_col]))
-#                 qcr_id_filter_select(driver, wait)
-#                 qcr_id_filter_apply_at_second_filter(driver, wait, str(row[qcr_id_col]))
-#                 save_as_asg(driver, wait, row[title_col])
-#                 strong_submit_asg(driver, wait)
-#                 if is_existing_asg(driver, wait):
-#                     df_list.append({
-#                         'qcr_id': row[qcr_id_col],
-#                         'primary_issue_id': row[primary_issue_id_col],
-#                         'part_number': row[part_number_col],
-#                         'title': row[title_col],
-#                         'parent_href': is_existing_asg(driver, wait)[0],
-#                         'parent_label': is_existing_asg(driver, wait)[1],
-#                         'status': 'existing, need manual creation'
-#                     })
-#                 else:
-#                     df_list.append({
-#                         'qcr_id': row[qcr_id_col],
-#                         'primary_issue_id': row[primary_issue_id_col],
-#                         'part_number': row[part_number_col],
-#                         'title': row[title_col],
-#                         'status': 'created',
-#                         'success': True
-#                     })
-#             else:
-#                 df_list.append({
-#                     'qcr_id': row[qcr_id_col],
-#                     'primary_issue_id': row[primary_issue_id_col],
-#                     'part_number': row[part_number_col],
-#                     'title': row[title_col],
-#                     'status': 'no part number or qcr id or primary issue id',
-#                     'success': False
-#                 })
-#         except Exception as e:
-#             df_list.append({
-#                 'qcr_id': row[qcr_id_col],
-#                 'primary_issue_id': row[primary_issue_id_col],
-#                 'part_number': row[part_number_col],
-#                 'title': row[title_col],
-#                 'status': f'error: {e}',
-#                 'success': False
-#             })
-#             continue
-#     driver.quit()
-#     output = pd.DataFrame(df_list)
-#     if output_path:
-#         output_path = output_path.replace('.csv', '')
-#         try:
-#             output.to_csv(f'{output_path}{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
-#         except Exception as e:
-#             print(f"Error saving output to {output_path}: {e}")
-#             output.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
-#     else:
-#         output.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
-#     return output
+                else:
+                    if is_submited(driver, wait):
+                        df_list.append({
+                            'qcr_id': row[qcr_id_col],
+                            'primary_issue_id': row[primary_issue_id_col],
+                            'part_number': row[part_number_col],
+                            'title': row[title_col],
+                            'status': 'created',
+                            'success': True
+                        })
+                    else:
+                        df_list.append({
+                            'qcr_id': row[qcr_id_col],
+                            'primary_issue_id': row[primary_issue_id_col],
+                            'part_number': row[part_number_col],
+                            'title': row[title_col],
+                            'status': 'Need to create the ASG manually.',
+                            'success': False
+                        })
+            elif pd.notna(row[qcr_id_col]) and pd.notna(row[primary_issue_id_col]):
+                select_datasets(driver, wait)
+                primary_issue_id_filter_select(driver, wait)
+                primary_issue_id_filter_apply_at_first_filter(driver, wait, str(row[primary_issue_id_col]))
+                qcr_id_filter_select(driver, wait)
+                qcr_id_filter_apply_at_second_filter(driver, wait, str(row[qcr_id_col]))
+                save_as_asg(driver, wait, row[title_col])
+                strong_submit_asg(driver, wait)
+                if is_existing_asg(driver, wait):
+                    df_list.append({
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'parent_href': is_existing_asg(driver, wait)[0],
+                        'parent_label': is_existing_asg(driver, wait)[1],
+                        'status': 'existing, need manual creation'
+                    })
+                else:
+                    df_list.append({
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'status': 'created',
+                        'success': True
+                    })
+            else:
+                df_list.append({
+                    'qcr_id': row[qcr_id_col],
+                    'primary_issue_id': row[primary_issue_id_col],
+                    'part_number': row[part_number_col],
+                    'title': row[title_col],
+                    'status': 'no part number or qcr id or primary issue id',
+                    'success': False
+                })
+        except Exception as e:
+            df_list.append({
+                'qcr_id': row[qcr_id_col],
+                'primary_issue_id': row[primary_issue_id_col],
+                'part_number': row[part_number_col],
+                'title': row[title_col],
+                'status': f'error: {e}',
+                'success': False
+            })
+            continue
+    driver.quit()
+    output = pd.DataFrame(df_list)
+    if output_path:
+        output_path = output_path.replace('.csv', '')
+        try:
+            output.to_csv(f'{output_path}{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+        except Exception as e:
+            print(f"Error saving output to {output_path}: {e}")
+            output.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+    else:
+        output.to_csv(f'asg_creation_result_{datetime.now().strftime("%d_%m_%y_%H_%M_%S")}.csv', index=False)
+    return output
 
 
-def  create_asg_eox_with_predetermined_filters(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str) -> pd.DataFrame:
+def  create_asg_eox_with_predetermined_filters(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str, manual_intervention: bool = False) -> pd.DataFrame:
     df = pd.read_csv(csv_path, dtype=str)
 
     for col in [qcr_id_col, primary_issue_id_col, part_number_col, title_col]:
@@ -479,18 +489,30 @@ def  create_asg_eox_with_predetermined_filters(*, csv_path: str, output_path: st
                     'success': False
                 })
         except Exception as e:
-            user_handle = input("If you want to handle the error manually, press 'y' and press Enter. Otherwise, press 'n' and press Enter.")
-            if user_handle == 'y':
-                print("Error: ", e)
-                df_list.append({
-                    'qcr_id': row[qcr_id_col],
-                    'primary_issue_id': row[primary_issue_id_col],
-                    'part_number': row[part_number_col],
-                    'title': row[title_col],
-                    'status': f'error: {e} handled manually',
-                    'success': True
-                })
-                continue
+            if manual_intervention:
+                user_handle = input("If you want to handle the error manually, press 'y' and press Enter. Otherwise, press 'n' and press Enter.")
+                if user_handle == 'y':
+                    print("Error: ", e)
+                    df_list.append({
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'status': f'error: {e} handled manually',
+                        'success': True
+                    })
+                    continue
+                else:
+                    print("Error: ", e)
+                    df_list.append({
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'status': f'error: {e}',
+                        'success': False
+                    })
+                    continue
             else:
                 print("Error: ", e)
                 df_list.append({
@@ -502,6 +524,7 @@ def  create_asg_eox_with_predetermined_filters(*, csv_path: str, output_path: st
                     'success': False
                 })
                 continue
+
     driver.quit()
     output = pd.DataFrame(df_list)
     if output_path:

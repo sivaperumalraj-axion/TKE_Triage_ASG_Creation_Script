@@ -345,7 +345,7 @@ def add_description(driver: webdriver.Chrome, wait: WebDriverWait, description: 
 
 
 
-def  create_asg_legacy_with_predetermined_filters(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str) -> pd.DataFrame:
+def  create_asg_legacy_with_predetermined_filters(*, csv_path: str, output_path: str, qcr_id_col: str, primary_issue_id_col: str, part_number_col: str, title_col: str, manual_intervention: bool = False) -> pd.DataFrame:
     df = pd.read_csv(csv_path, dtype=str)
 
     for col in [qcr_id_col, primary_issue_id_col, part_number_col, title_col]:
@@ -481,29 +481,41 @@ def  create_asg_legacy_with_predetermined_filters(*, csv_path: str, output_path:
                     'success': False
                 })
         except Exception as e:
-            user_handle = input("If you want to handle the error manually, press 'y' and press Enter. Otherwise, press 'n' and press Enter.")
-            if user_handle == 'y':
-                print("Error: ", e)
-                df_list.append({
-                    'qcr_id': row[qcr_id_col],
-                    'primary_issue_id': row[primary_issue_id_col],
-                    'part_number': row[part_number_col],
-                    'title': row[title_col],
-                    'status': f'error: {e} handled manually',
-                    'success': True
-                })
-                continue
+            if manual_intervention:
+                user_handle = input("If you want to handle the error manually, press 'y' and press Enter. Otherwise, press 'n' and press Enter.")
+                if user_handle == 'y':
+                    print("Error: ", e)
+                    df_list.append({
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'status': f'error: {e} handled manually',
+                        'success': True
+                    })
+                    continue
+                else:
+                    print("Error: ", e)
+                    df_list.append({
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'status': f'error: {e}',
+                        'success': False
+                    })
+                    continue
             else:
-                print("Error: ", e)
                 df_list.append({
-                    'qcr_id': row[qcr_id_col],
-                    'primary_issue_id': row[primary_issue_id_col],
-                    'part_number': row[part_number_col],
-                    'title': row[title_col],
-                    'status': f'error: {e}',
-                    'success': False
-                })
+                        'qcr_id': row[qcr_id_col],
+                        'primary_issue_id': row[primary_issue_id_col],
+                        'part_number': row[part_number_col],
+                        'title': row[title_col],
+                        'status': f'error: {e}',
+                        'success': False
+                    })
                 continue
+
     driver.quit()
     output = pd.DataFrame(df_list)
     if output_path:
