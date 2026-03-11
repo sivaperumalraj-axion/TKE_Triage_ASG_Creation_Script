@@ -273,6 +273,7 @@ def create_asg_eox(*, csv_path: str, output_path: str, qcr_id_col: str, primary_
                     df_list.pop()
                     row_details['status'] = 'Created with Primary Issue ID, Part Number and QCR ID, and the description is added'
                     df_list.append(row_details)
+                    continue
 
                 else:
                     if is_submited(driver, wait):
